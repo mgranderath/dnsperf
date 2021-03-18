@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"crypto/x509"
+	"dnsperf/qerr"
 	"github.com/miekg/dns"
 	"time"
 )
@@ -23,6 +24,7 @@ type Collector struct {
 	quicHandshakeStartTime time.Time
 	quicHandshakeDoneTime  time.Time
 	quicVersion            *string
+	quicError              *qerr.ErrorCode
 
 	querySendTime    time.Time
 	queryReceiveTime time.Time
@@ -89,6 +91,10 @@ func (c *Collector) TLSHandshakeFinished(version uint16) {
 
 func (c *Collector) TLSError(err x509.InvalidReason) {
 	c.tlsError = &err
+}
+
+func (c *Collector) QUICError(err qerr.ErrorCode) {
+	c.quicError = &err
 }
 
 func (c *Collector) QUICHandshakeStart() {

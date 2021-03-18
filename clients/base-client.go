@@ -217,7 +217,7 @@ func (c *baseClient) getTLSConfig(host string) *tls.Config {
 		}
 	} else if c.URL.Scheme == "quic" {
 		if c.options.QuicOptions != nil {
-			tlsConfig.NextProtos = append(c.options.QuicOptions.AllowedVersions, []string{"http/1.1", http2.NextProtoTLS}...)
+			tlsConfig.NextProtos = c.options.QuicOptions.AllowedVersions
 		}
 	}
 

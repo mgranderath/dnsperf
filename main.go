@@ -20,14 +20,15 @@ func main() {
 		TLSOptions: &clients.TLSOptions{
 			MinVersion:         tls.VersionTLS10,
 			MaxVersion:         tls.VersionTLS13,
-			InsecureSkipVerify: false,
+			InsecureSkipVerify: true,
+			SkipCommonName:     true,
 		},
 		QuicOptions: &clients.QuicOptions{
 			AllowedVersions: []string{clients.VersionQuic00, clients.VersionQuic01, clients.VersionQuic02},
 		},
 	}
 
-	u, err := clients.AddressToClient("tls://dns.google", opts)
+	u, err := clients.AddressToClient("https://8.8.8.8/dns-query", opts)
 	if err != nil {
 		log.Fatalf("Cannot create an upstream: %s", err)
 	}

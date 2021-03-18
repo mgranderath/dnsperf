@@ -70,6 +70,7 @@ func (c *DoHClient) exchangeHTTPSClient(m *dns.Msg, client *http.Client, collect
 	if response.Id != m.Id {
 		err = dns.ErrId
 	}
+
 	collector.ExchangeFinished()
 	return &response, err
 }
@@ -80,7 +81,7 @@ func (c *DoHClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 	client := c.createClient(collector)
 	reply, err := c.exchangeHTTPSClient(m, client, collector)
 	if err != nil {
-		collector.WithError(err)
+		return collector.WithError(err)
 	}
 	return collector.WithResponse(reply)
 }

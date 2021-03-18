@@ -15,6 +15,7 @@ type Result struct {
 
 	QUICHandshakeDuration *time.Duration `json:"quicHandshakeDuration,omitempty"`
 	QUICVersion           *string        `json:"quicVersion,omitempty"`
+	QUICError             *uint64        `json:"quicError,omitempty"`
 
 	QueryTime *time.Duration `json:"queryTime,omitempty"`
 
@@ -64,6 +65,7 @@ func (r *Result) transformQUIC() {
 		r.QUICHandshakeDuration = toPointer(r.collector.quicHandshakeDoneTime.Sub(r.collector.quicHandshakeStartTime))
 	}
 	r.QUICVersion = r.collector.quicVersion
+	r.QUICError = (*uint64)(r.collector.quicError)
 }
 
 func (r *Result) transformCommon() {

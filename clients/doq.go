@@ -3,11 +3,12 @@ package clients
 import (
 	"context"
 	"dnsperf/metrics"
+	"dnsperf/qerr"
 	"fmt"
-	"github.com/joomcode/errorx"
 	"github.com/lucas-clemente/quic-go"
 	"github.com/miekg/dns"
 	"net"
+	"reflect"
 	"sync"
 	"time"
 )
@@ -18,7 +19,7 @@ const (
 	VersionQuic02 = "doq-i02"
 )
 
-const handshakeTimeout = time.Second
+const handshakeTimeout = time.Second * 2
 
 type DoQClient struct {
 	baseClient *baseClient
@@ -54,7 +55,12 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	collector.QUICHandshakeStart()
 	session, err := quic.DialAddrContext(context.Background(), addr, tlsConfig, quicConfig)
 	if err != nil {
-		return nil, errorx.Decorate(err, "failed to open QUIC session to %s", c.baseClient.URL.String())
+		reflectErr := reflect.ValueOf(err)
+		if reflectErr.IsValid() && reflectErr.Elem().Type().String() == "qerr.QuicError" {
+			errorCode := reflectErr.Elem().FieldByName("ErrorCode").Uint()
+			collector.QUICError(qerr.ErrorCode(errorCode))
+		}
+		return nil, err
 	}
 	collector.QUICHandshakeDone(session.ConnectionState().Version, session.ConnectionState().NegotiatedProtocol)
 
