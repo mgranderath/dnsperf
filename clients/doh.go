@@ -2,10 +2,10 @@ package clients
 
 import (
 	"context"
-	"dnsperf/metrics"
 	"encoding/base64"
 	"fmt"
 	"github.com/joomcode/errorx"
+	"github.com/mgranderath/dnsperf/metrics"
 	"github.com/miekg/dns"
 	"golang.org/x/net/http2"
 	"io/ioutil"

@@ -1,10 +1,10 @@
 package clients
 
 import (
-	"dnsperf/metrics"
 	"errors"
 	"fmt"
 	"github.com/joomcode/errorx"
+	"github.com/mgranderath/dnsperf/metrics"
 	"github.com/miekg/dns"
 	"net/url"
 	"strings"

@@ -2,10 +2,10 @@ package clients
 
 import (
 	"context"
-	"dnsperf/metrics"
-	"dnsperf/qerr"
 	"fmt"
 	"github.com/lucas-clemente/quic-go"
+	"github.com/mgranderath/dnsperf/metrics"
+	"github.com/mgranderath/dnsperf/qerr"
 	"github.com/miekg/dns"
 	"net"
 	"reflect"

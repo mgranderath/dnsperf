@@ -2,7 +2,7 @@ package metrics
 
 import (
 	"crypto/x509"
-	"dnsperf/qerr"
+	"github.com/mgranderath/dnsperf/qerr"
 	"github.com/miekg/dns"
 	"time"
 )

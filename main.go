@@ -2,8 +2,8 @@ package main
 
 import (
 	"crypto/tls"
-	"dnsperf/clients"
 	"encoding/json"
+	"github.com/mgranderath/dnsperf/clients"
 	"github.com/miekg/dns"
 	"log"
 

@@ -2,7 +2,7 @@ package clients
 
 import (
 	"context"
-	"dnsperf/metrics"
+	"github.com/mgranderath/dnsperf/metrics"
 	"github.com/miekg/dns"
 	"time"
 )
