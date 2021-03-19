@@ -8,7 +8,6 @@ import (
 	"dnsperf/util"
 	"errors"
 	"fmt"
-	"github.com/joomcode/errorx"
 	"golang.org/x/net/http2"
 	"log"
 	"net"
@@ -151,10 +150,7 @@ func (c *baseClient) getDialContext(collector *metrics.Collector) (dialContext d
 			errs = append(errs, err)
 		}
 
-		if len(errs) == 0 {
-			return nil, fmt.Errorf("all dialers failed to initialize connection")
-		}
-		return nil, errorx.DecorateMany("all dialers failed to initialize connection: ", errs...)
+		return nil, fmt.Errorf("all dialers failed to initialize connection")
 	}
 }
 
