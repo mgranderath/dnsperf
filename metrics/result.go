@@ -5,24 +5,24 @@ import "time"
 type Result struct {
 	collector *Collector
 
-	UDPSocketSetupDuration *time.Duration `json:"udpSocketSetupDuration,omitempty"`
+	UDPSocketSetupDuration *time.Duration `json:"udp_socket_setup_duration,omitempty"`
 
-	TCPHandshakeDuration *time.Duration `json:"tcpHandshakeDuration,omitempty"`
+	TCPHandshakeDuration *time.Duration `json:"tcp_handshake_duration,omitempty"`
 
-	TLSHandshakeDuration *time.Duration `json:"tlsHandshakeDuration,omitempty"`
-	TLSVersion           *uint16        `json:"tlsVersion,omitempty"`
-	TLSError             *int           `json:"tlsError,omitempty"`
+	TLSHandshakeDuration *time.Duration `json:"tls_handshake_duration,omitempty"`
+	TLSVersion           *uint16        `json:"tls_version,omitempty"`
+	TLSError             *int           `json:"tls_error,omitempty"`
 
-	QUICHandshakeDuration  *time.Duration `json:"quicHandshakeDuration,omitempty"`
-	QUICVersion            *uint64        `json:"quicVersion,omitempty"`
-	QUICNegotiatedProtocol *string        `json:"quicNegotiatedProtocol,omitempty"`
-	QUICError              *uint64        `json:"quicError,omitempty"`
+	QUICHandshakeDuration  *time.Duration `json:"quic_handshake_duration,omitempty"`
+	QUICVersion            *uint64        `json:"quic_version,omitempty"`
+	QUICNegotiatedProtocol *string        `json:"quic_negotiated_protocol,omitempty"`
+	QUICError              *uint64        `json:"quic_error,omitempty"`
 
-	HTTPVersion *string `json:"httpVersion,omitempty"`
+	HTTPVersion *string `json:"http_version,omitempty"`
 
-	QueryTime *time.Duration `json:"queryTime,omitempty"`
+	QueryTime *time.Duration `json:"query_time,omitempty"`
 
-	TotalTime *time.Duration `json:"totalTime,omitempty"`
+	TotalTime *time.Duration `json:"total_time,omitempty"`
 }
 
 func fromCollector(collector *Collector) *Result {
