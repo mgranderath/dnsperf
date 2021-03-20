@@ -46,7 +46,7 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 
 	addr := udpConn.RemoteAddr().String()
 	quicConfig := &quic.Config{
-		HandshakeTimeout: handshakeTimeout,
+		HandshakeIdleTimeout: handshakeTimeout,
 	}
 
 	// Moved here because code above is misc
@@ -62,7 +62,10 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 		}
 		return nil, err
 	}
-	collector.QUICHandshakeDone(session.ConnectionState().Version, session.ConnectionState().NegotiatedProtocol)
+	collector.QUICHandshakeDone()
+	collector.TLSVersion(session.ConnectionState().TLS.Version)
+	collector.QUICNegotiatedProtocol(session.ConnectionState().TLS.NegotiatedProtocol)
+	collector.QUICVersion(reflect.ValueOf(session).Elem().FieldByName("version").Uint())
 
 	return session, nil
 }

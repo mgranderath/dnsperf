@@ -23,8 +23,9 @@ type Collector struct {
 
 	quicHandshakeStartTime time.Time
 	quicHandshakeDoneTime  time.Time
-	quicVersion            *string
+	quicVersion            *uint64
 	quicError              *qerr.ErrorCode
+	quicNegotiatedProtocol *string
 
 	querySendTime    time.Time
 	queryReceiveTime time.Time
@@ -103,10 +104,20 @@ func (c *Collector) QUICHandshakeStart() {
 	c.quicHandshakeStartTime = time.Now()
 }
 
-func (c *Collector) QUICHandshakeDone(tlsVersion uint16, quicVersion string) {
+func (c *Collector) QUICHandshakeDone() {
 	c.quicHandshakeDoneTime = time.Now()
+}
+
+func (c *Collector) QUICNegotiatedProtocol(negotiatedProtocol string) {
+	c.quicNegotiatedProtocol = &negotiatedProtocol
+}
+
+func (c *Collector) QUICVersion(version uint64) {
+	c.quicVersion = &version
+}
+
+func (c *Collector) TLSVersion(tlsVersion uint16) {
 	c.tlsVersion = &tlsVersion
-	c.quicVersion = &quicVersion
 }
 
 func (c *Collector) QuerySend() {

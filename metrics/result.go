@@ -13,9 +13,10 @@ type Result struct {
 	TLSVersion           *uint16        `json:"tlsVersion,omitempty"`
 	TLSError             *int           `json:"tlsError,omitempty"`
 
-	QUICHandshakeDuration *time.Duration `json:"quicHandshakeDuration,omitempty"`
-	QUICVersion           *string        `json:"quicVersion,omitempty"`
-	QUICError             *uint64        `json:"quicError,omitempty"`
+	QUICHandshakeDuration  *time.Duration `json:"quicHandshakeDuration,omitempty"`
+	QUICVersion            *uint64        `json:"quicVersion,omitempty"`
+	QUICNegotiatedProtocol *string        `json:"quicNegotiatedProtocol,omitempty"`
+	QUICError              *uint64        `json:"quicError,omitempty"`
 
 	HTTPVersion *string `json:"httpVersion,omitempty"`
 
@@ -69,6 +70,7 @@ func (r *Result) transformQUIC() {
 	}
 	r.QUICVersion = r.collector.quicVersion
 	r.QUICError = (*uint64)(r.collector.quicError)
+	r.QUICNegotiatedProtocol = r.collector.quicNegotiatedProtocol
 }
 
 func (r *Result) transformCommon() {
