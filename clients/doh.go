@@ -47,6 +47,7 @@ func (c *DoHClient) exchangeHTTPSClient(m *dns.Msg, client *http.Client, collect
 	}
 	req.Header.Set("Accept", "application/dns-message")
 
+	collector.QuerySend()
 	resp, err := client.Do(req)
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
@@ -70,6 +71,8 @@ func (c *DoHClient) exchangeHTTPSClient(m *dns.Msg, client *http.Client, collect
 	if response.Id != m.Id {
 		err = dns.ErrId
 	}
+
+	collector.HTTPVersion(resp.Proto)
 
 	collector.ExchangeFinished()
 	return &response, err

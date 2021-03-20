@@ -17,6 +17,8 @@ type Result struct {
 	QUICVersion           *string        `json:"quicVersion,omitempty"`
 	QUICError             *uint64        `json:"quicError,omitempty"`
 
+	HTTPVersion *string `json:"httpVersion,omitempty"`
+
 	QueryTime *time.Duration `json:"queryTime,omitempty"`
 
 	TotalTime *time.Duration `json:"totalTime,omitempty"`
@@ -32,6 +34,7 @@ func fromCollector(collector *Collector) *Result {
 	result.transformTLS()
 	result.transformQUIC()
 	result.transformCommon()
+	result.transformHTTPS()
 
 	return result
 }
@@ -75,4 +78,8 @@ func (r *Result) transformCommon() {
 	if !r.collector.queryReceiveTime.IsZero() {
 		r.QueryTime = toPointer(r.collector.queryReceiveTime.Sub(r.collector.querySendTime))
 	}
+}
+
+func (r *Result) transformHTTPS() {
+	r.HTTPVersion = r.collector.httpVersion
 }

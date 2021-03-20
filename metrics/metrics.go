@@ -29,6 +29,8 @@ type Collector struct {
 	querySendTime    time.Time
 	queryReceiveTime time.Time
 
+	httpVersion *string
+
 	endTime time.Time
 }
 
@@ -113,6 +115,10 @@ func (c *Collector) QuerySend() {
 
 func (c *Collector) QueryReceive() {
 	c.queryReceiveTime = time.Now()
+}
+
+func (c *Collector) HTTPVersion(version string) {
+	c.httpVersion = &version
 }
 
 func (c *Collector) ExchangeFinished() {
