@@ -3,7 +3,6 @@ package clients
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"github.com/joomcode/errorx"
 	"github.com/mgranderath/dnsperf/metrics"
 	"github.com/miekg/dns"
@@ -43,7 +42,7 @@ func (c *DoHClient) exchangeHTTPSClient(m *dns.Msg, client *http.Client, collect
 	requestURL := c.baseClient.URL.String() + "?dns=" + base64.RawURLEncoding.EncodeToString(buf)
 	req, err := http.NewRequest("GET", requestURL, nil)
 	if err != nil {
-		return nil, errorx.Decorate(err, "couldn't create a HTTP request to %s", c.baseClient.URL)
+		return nil, err
 	}
 	req.Header.Set("Accept", "application/dns-message")
 
@@ -52,21 +51,23 @@ func (c *DoHClient) exchangeHTTPSClient(m *dns.Msg, client *http.Client, collect
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
 	}
+
 	if err != nil {
-		return nil, errorx.Decorate(err, "couldn't do a GET request to '%s'", c.baseClient.URL)
+		return nil, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, errorx.Decorate(err, "couldn't read body contents for '%s'", c.baseClient.URL)
+		return nil, err
 	}
+	collector.HTTPVersion(resp.Proto)
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("got an unexpected HTTP status code %d from '%s'", resp.StatusCode, c.baseClient.URL)
+		return nil, err
 	}
 	response := dns.Msg{}
 	err = response.Unpack(body)
 	if err != nil {
-		return nil, errorx.Decorate(err, "couldn't unpack DNS response from '%s': body is %s", c.baseClient.URL, string(body))
+		return nil, err
 	}
 	if response.Id != m.Id {
 		err = dns.ErrId

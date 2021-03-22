@@ -2,7 +2,6 @@ package clients
 
 import (
 	"context"
-	"fmt"
 	"github.com/lucas-clemente/quic-go"
 	"github.com/mgranderath/dnsperf/metrics"
 	"github.com/mgranderath/dnsperf/qerr"
@@ -41,7 +40,7 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 
 	udpConn, ok := rawConn.(*net.UDPConn)
 	if !ok {
-		return nil, fmt.Errorf("failed to open connection to %s", c.baseClient.URL.String())
+		return nil, err
 	}
 
 	addr := udpConn.RemoteAddr().String()

@@ -136,7 +136,7 @@ func (c *baseClient) getDialContext(collector *metrics.Collector) (dialContext d
 	}
 
 	return func(ctx context.Context, network, addr string) (net.Conn, error) {
-		errs := []error{}
+		var dialError error
 
 		// Return first connection without error
 		// Note that we're using bootstrapped resolverAddress instead of what's passed to the function
@@ -147,10 +147,10 @@ func (c *baseClient) getDialContext(collector *metrics.Collector) (dialContext d
 				stop(network)
 				return con, err
 			}
-			errs = append(errs, err)
+			dialError = err
 		}
 
-		return nil, fmt.Errorf("all dialers failed to initialize connection")
+		return nil, dialError
 	}
 }
 
