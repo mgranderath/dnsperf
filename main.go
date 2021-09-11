@@ -23,12 +23,10 @@ func main() {
 			InsecureSkipVerify: true,
 			SkipCommonName:     true,
 		},
-		QuicOptions: &clients.QuicOptions{
-			AllowedVersions: []string{clients.VersionQuic00, clients.VersionQuic01, clients.VersionQuic02},
-		},
+		QuicOptions: &clients.QuicOptions{},
 	}
 
-	u, err := clients.AddressToClient("https://8.8.8.8/dns-query", opts)
+	u, err := clients.AddressToClient("quic://94.140.14.14:784", opts)
 	if err != nil {
 		log.Fatalf("Cannot create an upstream: %s", err)
 	}

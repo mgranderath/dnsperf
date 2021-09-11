@@ -2,6 +2,7 @@ package clients
 
 import (
 	"context"
+	"errors"
 	"github.com/lucas-clemente/quic-go"
 	"github.com/mgranderath/dnsperf/metrics"
 	"github.com/mgranderath/dnsperf/qerr"
@@ -12,11 +13,17 @@ import (
 	"time"
 )
 
+type DoQVersion string
+
 const (
-	VersionQuic00 = "doq-i00"
-	VersionQuic01 = "doq-i01"
-	VersionQuic02 = "doq-i02"
+	VersionDoQ00 DoQVersion = "doq-i00"
+	VersionDoQ01 DoQVersion = "doq-i01"
+	VersionDoQ02 DoQVersion = "doq-i02"
+	VersionDoQ03 DoQVersion = "doq-i03"
+	VersionDoQ04 DoQVersion = "doq-i04"
 )
+
+var defaultDoQVersions = []DoQVersion{VersionDoQ04, VersionDoQ03, VersionDoQ02, VersionDoQ01, VersionDoQ00}
 
 const handshakeTimeout = time.Second * 2
 
@@ -97,6 +104,33 @@ func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 		return collector.WithError(err)
 	}
 
+	// If any message sent on a DoQ connection contains an edns-tcp-keepalive EDNS(0) Option,
+	// this is a fatal error and the recipient of the defective message MUST forcibly abort
+	// the connection immediately.
+	// https://datatracker.ietf.org/doc/html/draft-ietf-dprive-dnsoquic-02#section-6.6.2
+	if opt := m.IsEdns0(); opt != nil {
+		for _, option := range opt.Option {
+			// Check for EDNS TCP keepalive option
+			if option.Option() == dns.EDNS0TCPKEEPALIVE {
+				_ = session.CloseWithError(0, "") // Already closing the connection so we don't care about the error
+				return collector.WithError(errors.New("EDNS0 TCP keepalive option is set"))
+			}
+		}
+	}
+
+	// https://datatracker.ietf.org/doc/html/draft-ietf-dprive-dnsoquic-02#section-6.4
+	// When sending queries over a QUIC connection, the DNS Message ID MUST be set to zero.
+	id := m.Id
+	var reply *dns.Msg
+	m.Id = 0
+	defer func() {
+		// Restore the original ID to not break compatibility with proxies
+		m.Id = id
+		if reply != nil {
+			reply.Id = id
+		}
+	}()
+
 	stream, err := c.openStream(session)
 	if err != nil {
 		return collector.WithError(err)
@@ -122,9 +156,6 @@ func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 	pool := c.getBytesPool()
 	respBuf := pool.Get().([]byte)
 
-	// Linter says that the argument needs to be pointer-like
-	// But it's already pointer-like
-	// nolint
 	defer pool.Put(respBuf)
 
 	n, err := stream.Read(respBuf)
@@ -133,7 +164,7 @@ func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 		collector.WithError(err)
 	}
 
-	reply := new(dns.Msg)
+	reply = new(dns.Msg)
 	err = reply.Unpack(respBuf)
 	if err != nil {
 		collector.WithError(err)

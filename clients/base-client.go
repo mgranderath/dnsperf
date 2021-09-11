@@ -13,6 +13,7 @@ import (
 	"net"
 	"net/url"
 	"time"
+	"unsafe"
 )
 
 // RootCAs is the CertPool that must be used by all upstreams
@@ -212,8 +213,10 @@ func (c *baseClient) getTLSConfig(host string) *tls.Config {
 			"http/1.1", http2.NextProtoTLS,
 		}
 	} else if c.URL.Scheme == "quic" {
-		if c.options.QuicOptions != nil {
-			tlsConfig.NextProtos = c.options.QuicOptions.AllowedVersions
+		if c.options.QuicOptions != nil && c.options.QuicOptions.AllowedVersions != nil {
+			tlsConfig.NextProtos = *(*[]string)(unsafe.Pointer(c.options.QuicOptions.AllowedVersions))
+		} else {
+			tlsConfig.NextProtos = *(*[]string)(unsafe.Pointer(&defaultDoQVersions))
 		}
 	}
 

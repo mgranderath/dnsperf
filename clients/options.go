@@ -20,7 +20,7 @@ type TLSOptions struct {
 }
 
 type QuicOptions struct {
-	AllowedVersions []string
+	AllowedVersions *[]DoQVersion
 }
 
 type Options struct {
