@@ -26,7 +26,7 @@ func main() {
 		QuicOptions: &clients.QuicOptions{},
 	}
 
-	u, err := clients.AddressToClient("quic://94.140.14.14:784", opts)
+	u, err := clients.AddressToClient("quic://94.140.14.14:8853", opts)
 	if err != nil {
 		log.Fatalf("Cannot create an upstream: %s", err)
 	}

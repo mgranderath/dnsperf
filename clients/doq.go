@@ -53,6 +53,12 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	addr := udpConn.RemoteAddr().String()
 	quicConfig := &quic.Config{
 		HandshakeIdleTimeout: handshakeTimeout,
+		Versions: []quic.VersionNumber{
+			quic.Version1,
+			quic.VersionDraft34,
+			quic.VersionDraft32,
+			quic.VersionDraft29,
+		},
 	}
 
 	// Moved here because code above is misc
