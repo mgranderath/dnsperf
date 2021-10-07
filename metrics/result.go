@@ -1,6 +1,8 @@
 package metrics
 
-import "time"
+import (
+	"time"
+)
 
 type Result struct {
 	collector *Collector
@@ -13,10 +15,11 @@ type Result struct {
 	TLSVersion           *uint16        `json:"tls_version,omitempty"`
 	TLSError             *int           `json:"tls_error,omitempty"`
 
-	QUICHandshakeDuration  *time.Duration `json:"quic_handshake_duration,omitempty"`
-	QUICVersion            *uint64        `json:"quic_version,omitempty"`
-	QUICNegotiatedProtocol *string        `json:"quic_negotiated_protocol,omitempty"`
-	QUICError              *uint64        `json:"quic_error,omitempty"`
+	QUICHandshakeDuration  *time.Duration           `json:"quic_handshake_duration,omitempty"`
+	QUICVersion            *uint64                  `json:"quic_version,omitempty"`
+	QUICNegotiatedProtocol *string                  `json:"quic_negotiated_protocol,omitempty"`
+	QUICError              *uint64                  `json:"quic_error,omitempty"`
+	QLogMessages           []map[string]interface{} `json:"qlog_messages,omitempty"`
 
 	HTTPVersion *string `json:"http_version,omitempty"`
 
@@ -71,6 +74,12 @@ func (r *Result) transformQUIC() {
 	r.QUICVersion = r.collector.quicVersion
 	r.QUICError = (*uint64)(r.collector.quicError)
 	r.QUICNegotiatedProtocol = r.collector.quicNegotiatedProtocol
+
+	if len(r.collector.qLogMessages) != 0 {
+		for _, message := range r.collector.qLogMessages {
+			r.QLogMessages = append(r.QLogMessages, message)
+		}
+	}
 }
 
 func (r *Result) transformCommon() {

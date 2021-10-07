@@ -2,8 +2,10 @@ package metrics
 
 import (
 	"crypto/x509"
+	"encoding/json"
 	"github.com/mgranderath/dnsperf/qerr"
 	"github.com/miekg/dns"
+	"log"
 	"time"
 )
 
@@ -33,6 +35,8 @@ type Collector struct {
 	httpVersion *string
 
 	endTime time.Time
+
+	qLogMessages []map[string]interface{}
 }
 
 func NewCollector() *Collector {
@@ -134,4 +138,13 @@ func (c *Collector) HTTPVersion(version string) {
 
 func (c *Collector) ExchangeFinished() {
 	c.endTime = time.Now()
+}
+
+func (c *Collector) QLogMessage(message []byte) {
+	m := make(map[string]interface{})
+	err := json.Unmarshal(message, &m)
+	if err != nil {
+		log.Panic(err)
+	}
+	c.qLogMessages = append(c.qLogMessages, m)
 }

@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"github.com/lucas-clemente/quic-go"
+	"github.com/lucas-clemente/quic-go/logging"
+	"github.com/lucas-clemente/quic-go/qlog"
 	"github.com/mgranderath/dnsperf/metrics"
 	"github.com/mgranderath/dnsperf/qerr"
 	"github.com/miekg/dns"
+	"io"
 	"net"
 	"reflect"
 	"sync"
@@ -29,6 +32,26 @@ const handshakeTimeout = time.Second * 2
 
 type DoQClient struct {
 	baseClient *baseClient
+}
+
+type qLogWriter struct {
+	collector *metrics.Collector
+}
+
+func (w qLogWriter) Write(p []byte) (n int, err error) {
+	if string(p[:]) == "\n" {
+		return 0, nil
+	}
+	w.collector.QLogMessage(p)
+	return len(p), nil
+}
+
+func (w qLogWriter) Close() error {
+	return nil
+}
+
+func newWriterCloser(collector *metrics.Collector) io.WriteCloser {
+	return &qLogWriter{collector: collector}
 }
 
 func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, error) {
@@ -59,6 +82,9 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 			quic.VersionDraft32,
 			quic.VersionDraft29,
 		},
+		Tracer: qlog.NewTracer(func(p logging.Perspective, connectionID []byte) io.WriteCloser {
+			return newWriterCloser(collector)
+		}),
 	}
 
 	// Moved here because code above is misc
@@ -177,6 +203,8 @@ func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 	}
 
 	collector.ExchangeFinished()
+
+	session.CloseWithError(0, "")
 
 	return collector.WithResponse(reply)
 }
