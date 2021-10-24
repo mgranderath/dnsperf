@@ -24,9 +24,11 @@ const (
 	VersionDoQ02 DoQVersion = "doq-i02"
 	VersionDoQ03 DoQVersion = "doq-i03"
 	VersionDoQ04 DoQVersion = "doq-i04"
+	VersionDoQ05 DoQVersion = "doq-i05"
+	VersionDoQ06 DoQVersion = "doq-i06"
 )
 
-var defaultDoQVersions = []DoQVersion{VersionDoQ04, VersionDoQ03, VersionDoQ02, VersionDoQ01, VersionDoQ00}
+var defaultDoQVersions = []DoQVersion{VersionDoQ06, VersionDoQ05, VersionDoQ04, VersionDoQ03, VersionDoQ02, VersionDoQ01, VersionDoQ00}
 
 const handshakeTimeout = time.Second * 2
 
