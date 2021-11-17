@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/lucas-clemente/quic-go"
-	"github.com/mgranderath/dnsperf/clients"
+	"github.com/Lucapaulo/dnsperf/clients"
 	"github.com/miekg/dns"
 	"log"
 	"strings"
@@ -24,8 +24,6 @@ func main() {
 		TLSOptions: &clients.TLSOptions{
 			MinVersion:         tls.VersionTLS10,
 			MaxVersion:         tls.VersionTLS13,
-			InsecureSkipVerify: true,
-			SkipCommonName:     true,
 		},
 		QuicOptions: &clients.QuicOptions{
 			TokenStore: tokenStore,

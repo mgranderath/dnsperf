@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"github.com/joomcode/errorx"
-	"github.com/mgranderath/dnsperf/metrics"
+	"github.com/Lucapaulo/dnsperf/metrics"
 	"github.com/miekg/dns"
 	"golang.org/x/net/http2"
 	"io/ioutil"
