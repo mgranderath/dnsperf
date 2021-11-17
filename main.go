@@ -4,8 +4,8 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/lucas-clemente/quic-go"
 	"github.com/Lucapaulo/dnsperf/clients"
+	"github.com/lucas-clemente/quic-go"
 	"github.com/miekg/dns"
 	"log"
 	"strings"
@@ -27,6 +27,8 @@ func main() {
 		},
 		QuicOptions: &clients.QuicOptions{
 			TokenStore: tokenStore,
+			QuicVersions: []quic.VersionNumber{quic.VersionDraft34, quic.VersionDraft32, quic.VersionDraft29, quic.Version1},
+
 		},
 	}
 

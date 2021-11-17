@@ -3,11 +3,11 @@ package clients
 import (
 	"context"
 	"errors"
+	"github.com/Lucapaulo/dnsperf/metrics"
+	"github.com/Lucapaulo/dnsperf/qerr"
 	"github.com/lucas-clemente/quic-go"
 	"github.com/lucas-clemente/quic-go/logging"
 	"github.com/lucas-clemente/quic-go/qlog"
-	"github.com/Lucapaulo/dnsperf/metrics"
-	"github.com/Lucapaulo/dnsperf/qerr"
 	"github.com/miekg/dns"
 	"io"
 	"net"
@@ -60,6 +60,7 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	tlsConfig := c.baseClient.resolvedConfig
 	dialContext := c.baseClient.getDialContext(nil)
 	tokenStore := c.baseClient.options.QuicOptions.TokenStore
+	quicVersions := c.baseClient.options.QuicOptions.QuicVersions
 
 	// we're using bootstrapped address instead of what's passed to the function
 	// it does not create an actual connection, but it helps us determine
@@ -79,12 +80,7 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	addr := udpConn.RemoteAddr().String()
 	quicConfig := &quic.Config{
 		HandshakeIdleTimeout: handshakeTimeout,
-		Versions: []quic.VersionNumber{
-			quic.VersionDraft34,
-			quic.VersionDraft32,
-			quic.VersionDraft29,
-			quic.Version1,
-		},
+		Versions: quicVersions,
 		Tracer: qlog.NewTracer(func(p logging.Perspective, connectionID []byte) io.WriteCloser {
 			return newWriterCloser(collector)
 		}),

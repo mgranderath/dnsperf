@@ -23,6 +23,7 @@ type TLSOptions struct {
 type QuicOptions struct {
 	AllowedVersions *[]DoQVersion
 	TokenStore quic.TokenStore
+	QuicVersions []quic.VersionNumber
 }
 
 type Options struct {
