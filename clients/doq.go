@@ -80,10 +80,10 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	quicConfig := &quic.Config{
 		HandshakeIdleTimeout: handshakeTimeout,
 		Versions: []quic.VersionNumber{
-			quic.Version1,
 			quic.VersionDraft34,
 			quic.VersionDraft32,
 			quic.VersionDraft29,
+			quic.Version1,
 		},
 		Tracer: qlog.NewTracer(func(p logging.Perspective, connectionID []byte) io.WriteCloser {
 			return newWriterCloser(collector)
