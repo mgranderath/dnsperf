@@ -61,6 +61,7 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	dialContext := c.baseClient.getDialContext(nil)
 	tokenStore := c.baseClient.options.QuicOptions.TokenStore
 	quicVersions := c.baseClient.options.QuicOptions.QuicVersions
+	port := c.baseClient.options.QuicOptions.LocalPort
 
 	// we're using bootstrapped address instead of what's passed to the function
 	// it does not create an actual connection, but it helps us determine
@@ -91,7 +92,7 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	collector.ExchangeStarted()
 
 	collector.QUICHandshakeStart()
-	session, err := quic.DialAddrContext(context.Background(), addr, tlsConfig, quicConfig)
+	session, err := quic.DialAddrContext(context.Background(), addr, tlsConfig, quicConfig, port)
 	if err != nil {
 		reflectErr := reflect.ValueOf(err)
 		if reflectErr.IsValid() && reflectErr.Elem().Type().String() == "qerr.QuicError" {

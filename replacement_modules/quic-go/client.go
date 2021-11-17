@@ -57,7 +57,7 @@ func DialAddr(
 	tlsConf *tls.Config,
 	config *Config,
 ) (Session, error) {
-	return DialAddrContext(context.Background(), addr, tlsConf, config)
+	return DialAddrContext(context.Background(), addr, tlsConf, config, 0)
 }
 
 // DialAddrEarly establishes a new 0-RTT QUIC connection to a server.
@@ -80,7 +80,7 @@ func DialAddrEarlyContext(
 	tlsConf *tls.Config,
 	config *Config,
 ) (EarlySession, error) {
-	sess, err := dialAddrContext(ctx, addr, tlsConf, config, true)
+	sess, err := dialAddrContext(ctx, addr, tlsConf, config, true, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -95,8 +95,9 @@ func DialAddrContext(
 	addr string,
 	tlsConf *tls.Config,
 	config *Config,
+	port int,
 ) (Session, error) {
-	return dialAddrContext(ctx, addr, tlsConf, config, false)
+	return dialAddrContext(ctx, addr, tlsConf, config, false, port)
 }
 
 func dialAddrContext(
@@ -105,12 +106,13 @@ func dialAddrContext(
 	tlsConf *tls.Config,
 	config *Config,
 	use0RTT bool,
+	port int,
 ) (quicSession, error) {
 	udpAddr, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
 		return nil, err
 	}
-	udpConn, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4zero, Port: 40000})
+	udpConn, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4zero, Port: port})
 	if err != nil {
 		return nil, err
 	}

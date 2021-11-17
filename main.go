@@ -8,6 +8,8 @@ import (
 	"github.com/lucas-clemente/quic-go"
 	"github.com/miekg/dns"
 	"log"
+	"net"
+	"strconv"
 	"strings"
 
 	"time"
@@ -18,6 +20,10 @@ func main() {
 
 	rrType := dns.TypeA
 	timeout := 10
+	udpConn, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4zero, Port: 0})
+	_, portString, _ := net.SplitHostPort(udpConn.LocalAddr().String())
+	udpConn.Close()
+	port, _ := strconv.Atoi(portString)
 
 	opts := clients.Options{
 		Timeout: time.Duration(timeout) * time.Second,
@@ -28,7 +34,7 @@ func main() {
 		QuicOptions: &clients.QuicOptions{
 			TokenStore: tokenStore,
 			QuicVersions: []quic.VersionNumber{quic.VersionDraft34, quic.VersionDraft32, quic.VersionDraft29, quic.Version1},
-
+			LocalPort: port,
 		},
 	}
 
