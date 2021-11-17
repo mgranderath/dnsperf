@@ -2,6 +2,8 @@ module github.com/Lucapaulo/dnsperf
 
 go 1.16
 
+replace github.com/lucas-clemente/quic-go => "./replacement_modules/quic-go"
+
 require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/joomcode/errorx v1.0.3
