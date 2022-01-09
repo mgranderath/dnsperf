@@ -3,11 +3,11 @@ package clients
 import (
 	"context"
 	"errors"
-	"github.com/Lucapaulo/dnsperf/metrics"
-	"github.com/Lucapaulo/dnsperf/qerr"
 	"github.com/lucas-clemente/quic-go"
 	"github.com/lucas-clemente/quic-go/logging"
 	"github.com/lucas-clemente/quic-go/qlog"
+	"github.com/mgranderath/dnsperf/metrics"
+	"github.com/mgranderath/dnsperf/qerr"
 	"github.com/miekg/dns"
 	"io"
 	"net"
@@ -81,7 +81,7 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	addr := udpConn.RemoteAddr().String()
 	quicConfig := &quic.Config{
 		HandshakeIdleTimeout: handshakeTimeout,
-		Versions: quicVersions,
+		Versions:             quicVersions,
 		Tracer: qlog.NewTracer(func(p logging.Perspective, connectionID []byte) io.WriteCloser {
 			return newWriterCloser(collector)
 		}),

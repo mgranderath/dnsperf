@@ -3,7 +3,7 @@ package metrics
 import (
 	"crypto/x509"
 	"encoding/json"
-	"github.com/Lucapaulo/dnsperf/qerr"
+	"github.com/mgranderath/dnsperf/qerr"
 	"github.com/miekg/dns"
 	"log"
 	"time"

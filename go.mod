@@ -1,4 +1,4 @@
-module github.com/Lucapaulo/dnsperf
+module github.com/mgranderath/dnsperf
 
 go 1.16
 

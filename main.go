@@ -4,8 +4,8 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/Lucapaulo/dnsperf/clients"
 	"github.com/lucas-clemente/quic-go"
+	"github.com/mgranderath/dnsperf/clients"
 	"github.com/miekg/dns"
 	"log"
 	"net"
@@ -28,13 +28,13 @@ func main() {
 	opts := clients.Options{
 		Timeout: time.Duration(timeout) * time.Second,
 		TLSOptions: &clients.TLSOptions{
-			MinVersion:         tls.VersionTLS10,
-			MaxVersion:         tls.VersionTLS13,
+			MinVersion: tls.VersionTLS10,
+			MaxVersion: tls.VersionTLS13,
 		},
 		QuicOptions: &clients.QuicOptions{
-			TokenStore: tokenStore,
+			TokenStore:   tokenStore,
 			QuicVersions: []quic.VersionNumber{quic.VersionDraft34, quic.VersionDraft32, quic.VersionDraft29, quic.Version1},
-			LocalPort: port,
+			LocalPort:    port,
 		},
 	}
 
@@ -52,7 +52,7 @@ func main() {
 
 	response := ""
 
-	for i := 1;  i<=3; i++ {
+	for i := 1; i <= 3; i++ {
 		reply := u.Exchange(&req)
 		if reply.GetError() != nil {
 			log.Printf("Cannot make the DNS request: %s\n", reply.GetError())
