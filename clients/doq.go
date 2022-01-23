@@ -59,6 +59,9 @@ func newWriterCloser(collector *metrics.Collector) io.WriteCloser {
 func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, error) {
 	tlsConfig := c.baseClient.resolvedConfig
 	dialContext := c.baseClient.getDialContext(nil)
+	tokenStore := c.baseClient.options.QuicOptions.TokenStore
+	quicVersions := c.baseClient.options.QuicOptions.QuicVersions
+	port := c.baseClient.options.QuicOptions.LocalPort
 
 	// we're using bootstrapped address instead of what's passed to the function
 	// it does not create an actual connection, but it helps us determine
@@ -78,22 +81,18 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	addr := udpConn.RemoteAddr().String()
 	quicConfig := &quic.Config{
 		HandshakeIdleTimeout: handshakeTimeout,
-		Versions: []quic.VersionNumber{
-			quic.Version1,
-			quic.VersionDraft34,
-			quic.VersionDraft32,
-			quic.VersionDraft29,
-		},
+		Versions:             quicVersions,
 		Tracer: qlog.NewTracer(func(p logging.Perspective, connectionID []byte) io.WriteCloser {
 			return newWriterCloser(collector)
 		}),
+		TokenStore: tokenStore,
 	}
 
 	// Moved here because code above is misc
 	collector.ExchangeStarted()
 
 	collector.QUICHandshakeStart()
-	session, err := quic.DialAddrContext(context.Background(), addr, tlsConfig, quicConfig)
+	session, err := quic.DialAddrContext(context.Background(), addr, tlsConfig, quicConfig, port)
 	if err != nil {
 		reflectErr := reflect.ValueOf(err)
 		if reflectErr.IsValid() && reflectErr.Elem().Type().String() == "qerr.QuicError" {

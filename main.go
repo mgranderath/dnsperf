@@ -3,30 +3,42 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
+	"github.com/lucas-clemente/quic-go"
 	"github.com/mgranderath/dnsperf/clients"
 	"github.com/miekg/dns"
 	"log"
+	"net"
+	"strconv"
+	"strings"
 
-	"os"
 	"time"
 )
 
 func main() {
+	tokenStore := quic.NewLRUTokenStore(5, 50)
+
 	rrType := dns.TypeA
 	timeout := 10
+	udpConn, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4zero, Port: 0})
+	_, portString, _ := net.SplitHostPort(udpConn.LocalAddr().String())
+	udpConn.Close()
+	port, _ := strconv.Atoi(portString)
 
 	opts := clients.Options{
 		Timeout: time.Duration(timeout) * time.Second,
 		TLSOptions: &clients.TLSOptions{
-			MinVersion:         tls.VersionTLS10,
-			MaxVersion:         tls.VersionTLS13,
-			InsecureSkipVerify: true,
-			SkipCommonName:     true,
+			MinVersion: tls.VersionTLS10,
+			MaxVersion: tls.VersionTLS13,
 		},
-		QuicOptions: &clients.QuicOptions{},
+		QuicOptions: &clients.QuicOptions{
+			TokenStore:   tokenStore,
+			QuicVersions: []quic.VersionNumber{quic.VersionDraft34, quic.VersionDraft32, quic.VersionDraft29, quic.Version1},
+			LocalPort:    port,
+		},
 	}
 
-	u, err := clients.AddressToClient("quic://94.140.14.14:8853", opts)
+	u, err := clients.AddressToClient("quic://94.140.15.15:8853", opts)
 	if err != nil {
 		log.Fatalf("Cannot create an upstream: %s", err)
 	}
@@ -38,22 +50,30 @@ func main() {
 		{Name: "test.com" + ".", Qtype: rrType, Qclass: dns.ClassINET},
 	}
 
-	reply := u.Exchange(&req)
-	if reply.GetError() != nil {
-		log.Printf("Cannot make the DNS request: %s\n", reply.GetError())
+	response := ""
+
+	for i := 1; i <= 3; i++ {
+		reply := u.Exchange(&req)
+		if reply.GetError() != nil {
+			log.Printf("Cannot make the DNS request: %s\n", reply.GetError())
+		}
+
+		b, err := json.MarshalIndent(reply.GetMetrics(), "", "  ")
+		if err != nil {
+			log.Fatalf("Cannot marshal json: %s", err)
+		}
+
+		//os.Stdout.WriteString(string(b) + "\n")
+
+		c, err := json.MarshalIndent(reply.GetResponse(), "", "  ")
+		if err != nil {
+			log.Fatalf("Cannot marshal json: %s", err)
+		}
+
+		//os.Stdout.WriteString(string(c) + "\n")
+		response = response + string(b) + "\n" + string(c) + "\n"
+		req.Id = dns.Id()
+		time.Sleep(time.Second * 1)
 	}
-
-	b, err := json.MarshalIndent(reply.GetMetrics(), "", "  ")
-	if err != nil {
-		log.Fatalf("Cannot marshal json: %s", err)
-	}
-
-	os.Stdout.WriteString(string(b) + "\n")
-
-	c, err := json.MarshalIndent(reply.GetResponse(), "", "  ")
-	if err != nil {
-		log.Fatalf("Cannot marshal json: %s", err)
-	}
-
-	os.Stdout.WriteString(string(c) + "\n")
+	fmt.Println("Retry count: ", strings.Count(response, "\"retry\""))
 }

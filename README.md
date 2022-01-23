@@ -3,8 +3,6 @@
 This is a library that supports performance measurements for Do53 (DoUDP), DoTCP, DoT, DoH and DoQ. It is focused on 
 providing a tool for getting performance measurements for single queries.
 
-Shouldn't be used in production yet and is still under development.
-
 For now a simple example can be seen in the `main.go`
 
 ### Acknowledgement

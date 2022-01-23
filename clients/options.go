@@ -1,6 +1,7 @@
 package clients
 
 import (
+	"github.com/lucas-clemente/quic-go"
 	"net"
 	"time"
 )
@@ -21,6 +22,9 @@ type TLSOptions struct {
 
 type QuicOptions struct {
 	AllowedVersions *[]DoQVersion
+	TokenStore quic.TokenStore
+	QuicVersions []quic.VersionNumber
+	LocalPort int
 }
 
 type Options struct {
