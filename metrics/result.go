@@ -18,6 +18,7 @@ type Result struct {
 	QUICHandshakeDuration  *time.Duration           `json:"quic_handshake_duration,omitempty"`
 	QUICVersion            *uint64                  `json:"quic_version,omitempty"`
 	QUICNegotiatedProtocol *string                  `json:"quic_negotiated_protocol,omitempty"`
+	QUICUsed0RTT 		bool 			`json:"quic_used0RTT"`
 	QUICError              *uint64                  `json:"quic_error,omitempty"`
 	QLogMessages           []map[string]interface{} `json:"qlog_messages,omitempty"`
 
@@ -74,6 +75,7 @@ func (r *Result) transformQUIC() {
 	r.QUICVersion = r.collector.quicVersion
 	r.QUICError = (*uint64)(r.collector.quicError)
 	r.QUICNegotiatedProtocol = r.collector.quicNegotiatedProtocol
+	r.QUICUsed0RTT = r.collector.quicUsed0RTT
 
 	if len(r.collector.qLogMessages) != 0 {
 		for _, message := range r.collector.qLogMessages {

@@ -92,7 +92,7 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	collector.ExchangeStarted()
 
 	collector.QUICHandshakeStart()
-	session, err := quic.DialAddrContext(context.Background(), addr, tlsConfig, quicConfig, port)
+	session, err := quic.DialAddrEarlyContext(context.Background(), addr, tlsConfig, quicConfig, port)
 	if err != nil {
 		reflectErr := reflect.ValueOf(err)
 		if reflectErr.IsValid() && reflectErr.Elem().Type().String() == "qerr.QuicError" {
@@ -204,6 +204,8 @@ func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 	}
 
 	collector.ExchangeFinished()
+
+	collector.QUICUsed0RTT(session.ConnectionState().TLS.Used0RTT)
 
 	session.CloseWithError(0, "")
 
