@@ -14,6 +14,7 @@ import (
 	"reflect"
 	"sync"
 	"time"
+	"fmt"
 )
 
 type DoQVersion string
@@ -68,7 +69,7 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	// what IP is actually reachable (when there're v4/v6 addresses)
 	rawConn, err := dialContext(context.TODO(), "udp", "")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Cannot bootstrap address: %v:", err)
 	}
 	// It's never actually used
 	_ = rawConn.Close()
@@ -99,7 +100,7 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 			errorCode := reflectErr.Elem().FieldByName("ErrorCode").Uint()
 			collector.QUICError(qerr.ErrorCode(errorCode))
 		}
-		return nil, err
+		return nil, fmt.Errorf("QUIC handshake failed: %v:", err)
 	}
 	collector.QUICHandshakeDone()
 	collector.TLSVersion(session.ConnectionState().TLS.Version)
@@ -134,7 +135,7 @@ func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 	collector := &metrics.Collector{}
 	session, err := c.getSession(collector)
 	if err != nil {
-		return collector.WithError(err)
+		return collector.WithError(fmt.Errorf("Cannot start session: %v", err))
 	}
 
 	// If any message sent on a DoQ connection contains an edns-tcp-keepalive EDNS(0) Option,
@@ -166,7 +167,7 @@ func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 
 	stream, err := c.openStream(session)
 	if err != nil {
-		return collector.WithError(err)
+		return collector.WithError(fmt.Errorf("Cannot open stream: %v", err))
 	}
 
 	buf, err := m.Pack()
@@ -177,7 +178,7 @@ func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 	collector.QuerySend()
 	_, err = stream.Write(buf)
 	if err != nil {
-		collector.WithError(err)
+		collector.WithError(fmt.Errorf("Cannot write to stream: %v", err))
 	}
 
 	// The client MUST send the DNS query over the selected stream, and MUST
@@ -194,7 +195,7 @@ func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 	n, err := stream.Read(respBuf)
 	collector.QueryReceive()
 	if err != nil && n == 0 {
-		collector.WithError(err)
+		collector.WithError(fmt.Errorf("Cannot read from stream: %v", err))
 	}
 
 	reply = new(dns.Msg)
