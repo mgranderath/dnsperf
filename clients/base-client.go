@@ -61,7 +61,9 @@ func newBaseClient(upsURL *url.URL, options Options) (*baseClient, error) {
 	c.resolvedConfig = c.getTLSConfig(host)
 
 	// if the caller supplied a TLS session cache, use it
-	c.resolvedConfig.ClientSessionCache = options.TLSOptions.ClientSessionCache
+	if options.TLSOptions != nil {
+		c.resolvedConfig.ClientSessionCache = options.TLSOptions.ClientSessionCache
+	}
 
 	return c, nil
 }
