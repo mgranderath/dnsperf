@@ -57,7 +57,7 @@ func newWriterCloser(collector *metrics.Collector) io.WriteCloser {
 	return &qLogWriter{collector: collector}
 }
 
-func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, error) {
+func (c *DoQClient) getConnection(collector *metrics.Collector) (quic.Connection, error) {
 	tlsConfig := c.baseClient.resolvedConfig
 	dialContext := c.baseClient.getDialContext(nil)
 	tokenStore := c.baseClient.options.QuicOptions.TokenStore
@@ -110,7 +110,7 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	return session, nil
 }
 
-func (c *DoQClient) openStream(session quic.Session) (quic.Stream, error) {
+func (c *DoQClient) openStream(session quic.Connection) (quic.Stream, error) {
 	ctx := context.Background()
 
 	if c.baseClient.options.Timeout > 0 {
@@ -133,7 +133,7 @@ func (c *DoQClient) getBytesPool() *sync.Pool {
 
 func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 	collector := &metrics.Collector{}
-	session, err := c.getSession(collector)
+	session, err := c.getConnection(collector)
 	if err != nil {
 		return collector.WithError(fmt.Errorf("Cannot start session: %v", err))
 	}
