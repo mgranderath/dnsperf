@@ -14,6 +14,7 @@ import (
 	"reflect"
 	"sync"
 	"time"
+	"fmt"
 )
 
 type DoQVersion string
@@ -26,9 +27,13 @@ const (
 	VersionDoQ04 DoQVersion = "doq-i04"
 	VersionDoQ05 DoQVersion = "doq-i05"
 	VersionDoQ06 DoQVersion = "doq-i06"
+	VersionDoQ07 DoQVersion = "doq-i07"
+	VersionDoQ08 DoQVersion = "doq-i08"
+	VersionDoQ09 DoQVersion = "doq-i09"
+	VersionDoQRFC DoQVersion = "doq"
 )
 
-var defaultDoQVersions = []DoQVersion{VersionDoQ06, VersionDoQ05, VersionDoQ04, VersionDoQ03, VersionDoQ02, VersionDoQ01, VersionDoQ00}
+var defaultDoQVersions = []DoQVersion{VersionDoQRFC, VersionDoQ09, VersionDoQ08, VersionDoQ07, VersionDoQ06, VersionDoQ05, VersionDoQ04, VersionDoQ03, VersionDoQ02, VersionDoQ01, VersionDoQ00}
 
 const handshakeTimeout = time.Second * 2
 
@@ -56,7 +61,7 @@ func newWriterCloser(collector *metrics.Collector) io.WriteCloser {
 	return &qLogWriter{collector: collector}
 }
 
-func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, error) {
+func (c *DoQClient) getConnection(collector *metrics.Collector) (quic.Connection, error) {
 	tlsConfig := c.baseClient.resolvedConfig
 	dialContext := c.baseClient.getDialContext(nil)
 	tokenStore := c.baseClient.options.QuicOptions.TokenStore
@@ -68,7 +73,7 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	// what IP is actually reachable (when there're v4/v6 addresses)
 	rawConn, err := dialContext(context.TODO(), "udp", "")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Cannot bootstrap address: %v:", err)
 	}
 	// It's never actually used
 	_ = rawConn.Close()
@@ -92,14 +97,14 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	collector.ExchangeStarted()
 
 	collector.QUICHandshakeStart()
-	session, err := quic.DialAddrContext(context.Background(), addr, tlsConfig, quicConfig, port)
+	session, err := quic.DialAddrEarlyContext(context.Background(), addr, tlsConfig, quicConfig, port)
 	if err != nil {
 		reflectErr := reflect.ValueOf(err)
 		if reflectErr.IsValid() && reflectErr.Elem().Type().String() == "qerr.QuicError" {
 			errorCode := reflectErr.Elem().FieldByName("ErrorCode").Uint()
 			collector.QUICError(qerr.ErrorCode(errorCode))
 		}
-		return nil, err
+		return nil, fmt.Errorf("QUIC handshake failed: %v:", err)
 	}
 	collector.QUICHandshakeDone()
 	collector.TLSVersion(session.ConnectionState().TLS.Version)
@@ -109,7 +114,7 @@ func (c *DoQClient) getSession(collector *metrics.Collector) (quic.Session, erro
 	return session, nil
 }
 
-func (c *DoQClient) openStream(session quic.Session) (quic.Stream, error) {
+func (c *DoQClient) openStream(session quic.Connection) (quic.Stream, error) {
 	ctx := context.Background()
 
 	if c.baseClient.options.Timeout > 0 {
@@ -132,9 +137,9 @@ func (c *DoQClient) getBytesPool() *sync.Pool {
 
 func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 	collector := &metrics.Collector{}
-	session, err := c.getSession(collector)
+	session, err := c.getConnection(collector)
 	if err != nil {
-		return collector.WithError(err)
+		return collector.WithError(fmt.Errorf("Cannot start session: %v", err))
 	}
 
 	// If any message sent on a DoQ connection contains an edns-tcp-keepalive EDNS(0) Option,
@@ -166,7 +171,7 @@ func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 
 	stream, err := c.openStream(session)
 	if err != nil {
-		return collector.WithError(err)
+		return collector.WithError(fmt.Errorf("Cannot open stream: %v", err))
 	}
 
 	buf, err := m.Pack()
@@ -177,7 +182,7 @@ func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 	collector.QuerySend()
 	_, err = stream.Write(buf)
 	if err != nil {
-		collector.WithError(err)
+		collector.WithError(fmt.Errorf("Cannot write to stream: %v", err))
 	}
 
 	// The client MUST send the DNS query over the selected stream, and MUST
@@ -194,7 +199,7 @@ func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 	n, err := stream.Read(respBuf)
 	collector.QueryReceive()
 	if err != nil && n == 0 {
-		collector.WithError(err)
+		collector.WithError(fmt.Errorf("Cannot read from stream: %v", err))
 	}
 
 	reply = new(dns.Msg)
@@ -204,6 +209,8 @@ func (c *DoQClient) Exchange(m *dns.Msg) *metrics.WithResponseOrError {
 	}
 
 	collector.ExchangeFinished()
+
+	collector.QUICUsed0RTT(session.ConnectionState().TLS.Used0RTT)
 
 	session.CloseWithError(0, "")
 

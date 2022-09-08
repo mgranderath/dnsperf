@@ -13,10 +13,12 @@ import (
 	"strings"
 
 	"time"
+	"os"
 )
 
 func main() {
 	tokenStore := quic.NewLRUTokenStore(5, 50)
+	clientSessionCache := tls.NewLRUClientSessionCache(100)
 
 	rrType := dns.TypeA
 	timeout := 10
@@ -30,15 +32,20 @@ func main() {
 		TLSOptions: &clients.TLSOptions{
 			MinVersion: tls.VersionTLS10,
 			MaxVersion: tls.VersionTLS13,
+			ClientSessionCache: clientSessionCache,
+			SkipCommonName: true,
+			InsecureSkipVerify: true,
 		},
 		QuicOptions: &clients.QuicOptions{
 			TokenStore:   tokenStore,
-			QuicVersions: []quic.VersionNumber{quic.VersionDraft34, quic.VersionDraft32, quic.VersionDraft29, quic.Version1},
+			QuicVersions: []quic.VersionNumber{quic.Version2, quic.Version1, quic.VersionDraft29},
 			LocalPort:    port,
 		},
 	}
 
 	u, err := clients.AddressToClient("quic://94.140.15.15:8853", opts)
+	//u, err := clients.AddressToClient("quic://127.0.0.1:8853", opts)
+	//u, err := clients.AddressToClient("quic://145.100.185.18:8853", opts)
 	if err != nil {
 		log.Fatalf("Cannot create an upstream: %s", err)
 	}
@@ -63,14 +70,14 @@ func main() {
 			log.Fatalf("Cannot marshal json: %s", err)
 		}
 
-		//os.Stdout.WriteString(string(b) + "\n")
+		os.Stdout.WriteString(string(b) + "\n")
 
 		c, err := json.MarshalIndent(reply.GetResponse(), "", "  ")
 		if err != nil {
 			log.Fatalf("Cannot marshal json: %s", err)
 		}
 
-		//os.Stdout.WriteString(string(c) + "\n")
+		os.Stdout.WriteString(string(c) + "\n")
 		response = response + string(b) + "\n" + string(c) + "\n"
 		req.Id = dns.Id()
 		time.Sleep(time.Second * 1)

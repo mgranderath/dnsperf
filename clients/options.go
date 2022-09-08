@@ -4,6 +4,7 @@ import (
 	"github.com/lucas-clemente/quic-go"
 	"net"
 	"time"
+	"crypto/tls"
 )
 
 type TLSOptions struct {
@@ -18,6 +19,9 @@ type TLSOptions struct {
 
 	// SkipCommonName - if true, do not verify the server hostname, has to be used in combination with InsecureSkipVerify false
 	SkipCommonName bool
+
+	// optional tls.ClientSessionCache to use (needed for 0RTTs)
+	ClientSessionCache tls.ClientSessionCache
 }
 
 type QuicOptions struct {

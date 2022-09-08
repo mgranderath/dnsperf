@@ -28,6 +28,7 @@ type Collector struct {
 	quicVersion            *uint64
 	quicError              *qerr.ErrorCode
 	quicNegotiatedProtocol *string
+	quicUsed0RTT		bool
 
 	querySendTime    time.Time
 	queryReceiveTime time.Time
@@ -118,6 +119,10 @@ func (c *Collector) QUICNegotiatedProtocol(negotiatedProtocol string) {
 
 func (c *Collector) QUICVersion(version uint64) {
 	c.quicVersion = &version
+}
+
+func (c *Collector) QUICUsed0RTT(used0RTT bool) {
+	c.quicUsed0RTT = used0RTT
 }
 
 func (c *Collector) TLSVersion(tlsVersion uint16) {
